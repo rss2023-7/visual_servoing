@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import math
 import rospy
 import numpy as np
 
@@ -37,6 +38,9 @@ class ParkingController():
         # Use relative position and your control law to set drive_cmd
 
         #################################
+        
+        # experimental angle implementation
+        angle_to_cone = math.tan(-self.relative_x / self.relative_y)
 
         self.drive_pub.publish(drive_cmd)
         self.error_publisher()
