@@ -24,7 +24,7 @@ def image_print(img):
 	cv2.destroyAllWindows()
 
 def cd_color_segmentation(img, template):
-	"""
+    """
 	Implement the cone detection using color segmentation algorithm
 	Input:
 		img: np.3darray; the input image with a cone to be detected. BGR.
@@ -35,9 +35,41 @@ def cd_color_segmentation(img, template):
 	"""
 	########## YOUR CODE STARTS HERE ##########
 
-	bounding_box = ((0,0),(0,0))
+    bounding_box = ((0,0),(0,0))
+    
+	# Convert the image from BGR to HSV color space
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+    # Set the lower and upper HSV limits for the orange color (started with 5, 100, 100 and 20, 255, 255)
+    # lower_orange = np.array([5, 100, 100])
+    # upper_orange = np.array([20, 255, 255])
+	# These values failed test 9, 14, 15
+
+    lower_orange = np.array([5, 100, 100])
+    upper_orange = np.array([18, 255, 255])
+    # Create a mask to keep only the orange pixels
+    mask = cv2.inRange(hsv, lower_orange, upper_orange)
+
+    # Erode the mask to remove noise
+    kernel = np.ones((3, 3), np.uint8)
+    eroded_mask = cv2.erode(mask, kernel, iterations=2)
+
+    # Dilate the mask to improve the shape
+    dilated_mask = cv2.dilate(eroded_mask, kernel, iterations=2)
+
+    # Find the contours in the dilated mask
+    contours = cv2.findContours(dilated_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[1]
+    # Find the bounding box of the largest contour
+    max_area = 0
+    for contour in contours:
+        x, y, w, h = cv2.boundingRect(contour)
+        area = w * h
+        if area > max_area:
+            max_area = area
+            bounding_box = ((x, y), (x + w, y + h))
+
 
 	########### YOUR CODE ENDS HERE ###########
 
 	# Return bounding box
-	return bounding_box
+    return bounding_box
