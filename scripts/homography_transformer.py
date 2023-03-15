@@ -11,6 +11,7 @@ from sensor_msgs.msg import Image
 from ackermann_msgs.msg import AckermannDriveStamped
 from visualization_msgs.msg import Marker
 from visual_servoing.msg import ConeLocation, ConeLocationPixel
+from geometry_msgs.msg import Point
 
 #The following collection of pixel locations and corresponding relative
 #ground plane locations are used to compute our homography matrix
@@ -19,22 +20,20 @@ from visual_servoing.msg import ConeLocation, ConeLocationPixel
 # see README.md for coordinate frame description
 
 ######################################################
-## DUMMY POINTS -- ENTER YOUR MEASUREMENTS HERE
-PTS_IMAGE_PLANE = [[-1, -1],
-                   [-1, -1],
-                   [-1, -1],
-                   [-1, -1]] # dummy points
+PTS_IMAGE_PLANE = [[420, 329],
+                   [252, 329],
+                   [200, 292],
+                   [420, 235]]
 ######################################################
 
 # PTS_GROUND_PLANE units are in inches
 # car looks along positive x axis with positive y axis to left
 
 ######################################################
-## DUMMY POINTS -- ENTER YOUR MEASUREMENTS HERE
-PTS_GROUND_PLANE = [[-1, -1],
-                    [-1, -1],
-                    [-1, -1],
-                    [-1, -1]] # dummy points
+PTS_GROUND_PLANE = [[19.5, -5.25],
+                    [19.5, 5.0],
+                    [29.0, 10.5],
+                    [70.75, -16.5]]
 ######################################################
 
 METERS_PER_INCH = 0.0254
@@ -43,6 +42,7 @@ METERS_PER_INCH = 0.0254
 class HomographyTransformer:
     def __init__(self):
         self.cone_px_sub = rospy.Subscriber("/relative_cone_px", ConeLocationPixel, self.cone_detection_callback)
+        self.click_sub = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color_mouse_left", Point, self.cone_detection_callback)
         self.cone_pub = rospy.Publisher("/relative_cone", ConeLocation, queue_size=10)
 
         self.marker_pub = rospy.Publisher("/cone_marker",
@@ -65,17 +65,25 @@ class HomographyTransformer:
 
     def cone_detection_callback(self, msg):
         #Extract information from message
-        u = msg.u
-        v = msg.v
+        try:
+            u = msg.u
+            v = msg.v
+        except:
+            u = msg.x
+            v = msg.y
+        print("clicked coordinates")
+        print(u,v)
 
         #Call to main function
         x, y = self.transformUvToXy(u, v)
+        print("output coordinates")
+        print(x,y)
 
         #Publish relative xy position of object in real world
         relative_xy_msg = ConeLocation()
         relative_xy_msg.x_pos = x
         relative_xy_msg.y_pos = y
-
+        self.draw_marker(x,y,"base_link")
         self.cone_pub.publish(relative_xy_msg)
 
 
