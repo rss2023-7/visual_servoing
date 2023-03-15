@@ -2,6 +2,8 @@ import cv2
 import imutils
 import numpy as np
 import pdb
+# import os
+# os.environ['DISPLAY'] = ':0'
 
 #################### X-Y CONVENTIONS #########################
 # 0,0  X  > > > > >
@@ -71,13 +73,54 @@ def cd_sift_ransac(img, template):
 
 		x_min = y_min = x_max = y_max = 0
 
+		dst = cv2.perspectiveTransform(pts,M)
+		dst += (w, 0)  # adding offset
+		dst = np.int32(dst)
+
+		draw_params = dict(matchColor=(0, 255, 0),  # draw matches in green color
+						   singlePointColor=None,
+						   matchesMask=matchesMask,  # draw only inliers
+						   flags=2)
+
+		img3 = cv2.drawMatches(template, kp1, img, kp2, good, None, **draw_params)
+
+		# Draw bounding box in Red
+		img3 = cv2.polylines(img3, [np.int32(dst)], True, (0, 0, 255), 3, cv2.LINE_AA)
+
+		print(dst)
+		# print(dst[0][0][0])
+		# print(dst[1][0][0])
+
+		# max/min x and y for all 4 corners of bounding box
+		# x_min = min([ dst[0][0][0], dst[1][0][0]])
+		# x_max = max([ dst[2][0][0], dst[3][0][0]])
+		# y_min = min([ dst[0][0][1], dst[3][0][1]])
+		# y_max = max([ dst[1][0][1], dst[2][0][1]])
+
+		# top left and bottom right of bounding box
+		x_min = dst[0][0][0]
+		x_max = dst[2][0][0]
+		y_min = dst[0][0][1]
+		y_max = dst[2][0][1]
+
+		print("x_min: ", x_min)
+		print("x_max: ", x_max)
+		print("y_min: ", y_min)
+		print("y_max: ", y_max)
+
+
+
+		cv2.imshow("result", img3)
+		cv2.waitKey()
+
+
 		########### YOUR CODE ENDS HERE ###########
 
 		# Return bounding box
 		return ((x_min, y_min), (x_max, y_max))
 	else:
 
-		print "[SIFT] not enough matches; matches: ", len(good)
+		print("[SIFT] not enough matches; matches: ", len(good))
 
 		# Return bounding box of area 0 if no match found
 		return ((0,0), (0,0))
@@ -93,6 +136,12 @@ def cd_template_matching(img, template):
 	"""
 	template_canny = cv2.Canny(template, 50, 200)
 
+	# # print(img)
+	# print(template_canny)
+	# image_print(template_canny)
+	# # print(template)
+	# # image_print(template)
+
 	# Perform Canny Edge detection on test image
 	grey_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 	img_canny = cv2.Canny(grey_img, 50, 200)
@@ -102,6 +151,7 @@ def cd_template_matching(img, template):
 
 	# Keep track of best-fit match
 	best_match = None
+	# for best_match, store the scale,
 
 	# Loop over different scales of image
 	for scale in np.linspace(1.5, .5, 50):
@@ -115,10 +165,47 @@ def cd_template_matching(img, template):
 		########## YOUR CODE STARTS HERE ##########
 		# Use OpenCV template matching functions to find the best match
 		# across template scales.
+		res = cv2.matchTemplate(img_canny, resized_template, cv2.TM_CCORR_NORMED)
+		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+		# print('\n-------------')
+		# print("min_val: ", min_val)
+		# print("max_val: ", max_val)
+		# print("min_loc: ", min_loc)
+		# print("max_loc: ", max_loc)
+		# print("gray image: ", gray_img)
+		# image_print(gray_img)
 
 		# Remember to resize the bounding box using the highest scoring scale
 		# x1,y1 pixel will be accurate, but x2,y2 needs to be correctly scaled
-		bounding_box = ((0,0),(0,0))
+		if best_match is None or max_val > best_match[1]:
+			best_match = (min_val, max_val, min_loc, max_loc)
+			bounding_box = ( max_loc,
+							 (max_loc[0] + w, max_loc[1] + h) )
+			W = w
+			H = h
+
 		########### YOUR CODE ENDS HERE ###########
 
+	print(best_match)
+
+	best_loc = best_match[3]
+	dst = [
+		# [best_loc[0] - W / 2, best_loc[1] - H / 2],
+		# [best_loc[0] - W / 2, best_loc[1] + H / 2],
+		# [best_loc[0] + W / 2, best_loc[1] + H / 2],
+		# [best_loc[0] + W / 2, best_loc[1] - H / 2],
+		[best_loc[0], best_loc[1]],
+		[best_loc[0], best_loc[1] + H],
+		[best_loc[0] + W, best_loc[1] + H],
+		[best_loc[0] + W, best_loc[1]],
+	]
+	# img2 = np.concatenate((img, template), axis=1)
+	# dst += (W, 0)
+	img3 = cv2.polylines(img, [np.int32(dst)], True, (0, 0, 255), 3, cv2.LINE_AA)
+	cv2.imshow("result", img3)
+	cv2.waitKey()
+
 	return bounding_box
+
+# if __name__ == '__main__':
+

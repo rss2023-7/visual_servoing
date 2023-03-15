@@ -39,8 +39,22 @@ class ParkingController():
 
         #################################
         
-        # experimental angle implementation
-        angle_to_cone = math.tan(-self.relative_x / self.relative_y)
+        angle = math.tan(self.relative_x / (- self.relative_y))
+
+        # determine euclidean distance to cone
+        dist_to_cone = math.sqrt(self.relative_x ** 2 + self.relative_y ** 2)
+
+        if self.relative_x > self.parking_distance:
+            drive_cmd.drive.speed = 0.5
+            drive_cmd.drive.steering_angle = angle
+        elif self.relative_x > self.parking_distance:
+            drive_cmd.drive.speed = -0.5
+            drive_cmd.drive.steering_angle = -angle
+        else:
+            drive_cmd.drive.speed = 0
+            drive_cmd.drive.steering_angle = 0
+
+        rospy.loginfo("angle to car = "+str(angle)+", dist to cone = "+str(dist_to_cone))
 
         self.drive_pub.publish(drive_cmd)
         self.error_publisher()
