@@ -154,6 +154,7 @@ def cd_template_matching(img, template):
 	# for best_match, store the scale,
 
 	# Loop over different scales of image
+	# for scale in np.linspace(2, .1, 200):
 	for scale in np.linspace(1.5, .5, 50):
 		# Resize the image
 		resized_template = imutils.resize(template_canny, width = int(template_canny.shape[1] * scale))
@@ -167,18 +168,17 @@ def cd_template_matching(img, template):
 		# across template scales.
 		res = cv2.matchTemplate(img_canny, resized_template, cv2.TM_CCORR_NORMED)
 		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
-		# print('\n-------------')
-		# print("min_val: ", min_val)
-		# print("max_val: ", max_val)
-		# print("min_loc: ", min_loc)
-		# print("max_loc: ", max_loc)
-		# print("gray image: ", gray_img)
-		# image_print(gray_img)
+
+		# MULTIPLE MATCHES
+		# threshold = .6
+		# loc = np.where(res >= threshold)
+
 
 		# Remember to resize the bounding box using the highest scoring scale
 		# x1,y1 pixel will be accurate, but x2,y2 needs to be correctly scaled
 		if best_match is None or max_val > best_match[1]:
 			best_match = (min_val, max_val, min_loc, max_loc)
+			# best_locations = loc # MULTIPLE MATCHES
 			bounding_box = ( max_loc,
 							 (max_loc[0] + w, max_loc[1] + h) )
 			W = w
@@ -188,21 +188,22 @@ def cd_template_matching(img, template):
 
 	print(best_match)
 
+	# SINGLE MATCH
 	best_loc = best_match[3]
 	dst = [
-		# [best_loc[0] - W / 2, best_loc[1] - H / 2],
-		# [best_loc[0] - W / 2, best_loc[1] + H / 2],
-		# [best_loc[0] + W / 2, best_loc[1] + H / 2],
-		# [best_loc[0] + W / 2, best_loc[1] - H / 2],
 		[best_loc[0], best_loc[1]],
 		[best_loc[0], best_loc[1] + H],
 		[best_loc[0] + W, best_loc[1] + H],
 		[best_loc[0] + W, best_loc[1]],
 	]
-	# img2 = np.concatenate((img, template), axis=1)
-	# dst += (W, 0)
 	img3 = cv2.polylines(img, [np.int32(dst)], True, (0, 0, 255), 3, cv2.LINE_AA)
 	cv2.imshow("result", img3)
+
+	# MULTIPLE MATCHES
+	# for pt in zip(*best_locations[::-1]):
+	# 	cv2.rectangle(img, pt, (pt[0] + W, pt[1] + H), (0, 0, 255), 2)
+	# cv2.imshow("result", img)
+
 	cv2.waitKey()
 
 	return bounding_box
