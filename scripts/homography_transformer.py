@@ -71,13 +71,15 @@ class HomographyTransformer:
         except:
             u = msg.x
             v = msg.y
-        print("clicked coordinates")
-        print(u,v)
+        # rospy.loginfo("image coordinates")
+        # rospy.loginfo(u)
+        # rospy.loginfo(v)
 
         #Call to main function
         x, y = self.transformUvToXy(u, v)
-        print("output coordinates")
-        print(x,y)
+        # rospy.loginfo("output coordinates")
+        # rospy.loginfo(x)
+        # rospy.loginfo(y)
 
         #Publish relative xy position of object in real world
         relative_xy_msg = ConeLocation()

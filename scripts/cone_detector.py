@@ -59,7 +59,9 @@ class ConeDetector():
 
         image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
 
+
         debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
+        #rospy.loginfo("I am publishing")
         self.debug_pub.publish(debug_msg)
 
 
@@ -67,6 +69,7 @@ if __name__ == '__main__':
     try:
         rospy.init_node('ConeDetector', anonymous=True)
         ConeDetector()
+        #rospy.loginfo("spinning")
         rospy.spin()
     except rospy.ROSInterruptException:
         pass
