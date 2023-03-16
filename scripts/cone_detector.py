@@ -42,11 +42,14 @@ class ConeDetector():
 
         image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
 
+        image_height = image.shape[0]
+        image_crop = image[int(image_height*.5):int(image_height*.85),:,:]
+
         # Call your color segmentation algorithm
-        bbox = cd_color_segmentation(image, None)
+        bbox = cd_color_segmentation(image_crop, None)
 
         # Get the center pixel on the bottom
-        u = (bbox[0][0] + bbox[1][0]) / 2
+        u = (bbox[0][0] + bbox[1][0]) / 2 + int(image_height*.5)
         v = bbox[1][1]
 
         # Publish the pixel (u, v) to the /relative_cone_px topic
