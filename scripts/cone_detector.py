@@ -42,24 +42,28 @@ class ConeDetector():
 
         image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
 
+        image_height = image.shape[0]
+        image_crop = image[int(image_height*.5):int(image_height*.85),:,:]
+
         # Call your color segmentation algorithm
-        bbox = cd_color_segmentation(image, None)
+        bbox = cd_color_segmentation(image_crop, None)
 
         # Get the center pixel on the bottom
         u = (bbox[0][0] + bbox[1][0]) / 2
-        v = bbox[1][1]
+        v = bbox[1][1] + int(image_height*.5)
 
         # Publish the pixel (u, v) to the /relative_cone_px topic
         cone_msg = ConeLocationPixel()
         cone_msg.u = u
         cone_msg.v = v
-        self.cone_pub.publish(cone_msg)
-    
+        self.cone_pub.publish(cone_msg)    
         #################################
 
         image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
+        debug_image = cv2.rectangle(image_crop, bbox[0], bbox[1], (0, 255, 0), 2)
 
-        debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
+        debug_msg = self.bridge.cv2_to_imgmsg(debug_image, "bgr8")
+        #rospy.loginfo("ConeDetector: publishing debug image")
         self.debug_pub.publish(debug_msg)
 
 
@@ -67,6 +71,7 @@ if __name__ == '__main__':
     try:
         rospy.init_node('ConeDetector', anonymous=True)
         ConeDetector()
+        #rospy.loginfo("spinning")
         rospy.spin()
     except rospy.ROSInterruptException:
         pass
