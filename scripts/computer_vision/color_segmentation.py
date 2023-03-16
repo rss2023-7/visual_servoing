@@ -66,13 +66,20 @@ def print_image_with_bounding_box(img, bbox):
     cv2.waitKey()
     cv2.destroyAllWindows()
 
-
 # Testing bounding box visualization on 20 cone test images
 
-# for image in range(0, 20):
-#     img = cv2.imread("home/racecar_ws/collaboration/visual_servoing/scripts/computer_vision/test_images_cone/test" + str(image) + ".jpg")
-#     bbox = cd_color_segmentation(img, None)
-#     print_image_with_bounding_box(img, bbox)
+for image in range(1, 3):
+    # print("~/racecar_ws/src/visual_servoing/scripts/computer_vision/test_images_cone/test" + str(image) + ".jpg")
+    img = cv2.imread("./test_images_cone/test" + str(image) + ".jpg")
+    img_crop = img[int(img.shape[0]*.5):int(img.shape[0]*.85),:,:]
+    cv2.imshow("image", img_crop)
+    cv2.waitKey()
+    cv2.destroyAllWindows()
+    # print(img.shape)
+    # print(img)
+    # cv2.imshow("image", img)
+    bbox = cd_color_segmentation(img_crop, None)
+    print_image_with_bounding_box(img_crop, bbox)
 
 
 

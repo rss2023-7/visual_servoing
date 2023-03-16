@@ -60,7 +60,11 @@ class ConeDetector():
         #################################
 
         image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
+<<<<<<< HEAD
         debug_image = cv2.rectangle(image_crop, bbox[0], bbox[1], (0, 255, 0), 2)
+=======
+        debug_image = cv2.rectangle(image, bbox[0], bbox[1], (0, 255, 0), 2)
+>>>>>>> b8b68970bf578f79149fdd14bb5c5c0d8c4995aa
 
         debug_msg = self.bridge.cv2_to_imgmsg(debug_image, "bgr8")
         #rospy.loginfo("ConeDetector: publishing debug image")
