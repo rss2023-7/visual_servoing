@@ -2,8 +2,8 @@ import cv2
 import imutils
 import numpy as np
 import pdb
-# import os
-# os.environ['DISPLAY'] = ':0'
+
+# THIS IS NEW
 
 #################### X-Y CONVENTIONS #########################
 # 0,0  X  > > > > >
@@ -73,45 +73,33 @@ def cd_sift_ransac(img, template):
 
 		x_min = y_min = x_max = y_max = 0
 
-		dst = cv2.perspectiveTransform(pts,M)
-		dst += (w, 0)  # adding offset
+		dst = cv2.perspectiveTransform(pts, M)
+		# dst += (w, 0)  # adding offset
 		dst = np.int32(dst)
-
 		draw_params = dict(matchColor=(0, 255, 0),  # draw matches in green color
 						   singlePointColor=None,
 						   matchesMask=matchesMask,  # draw only inliers
 						   flags=2)
-
-		img3 = cv2.drawMatches(template, kp1, img, kp2, good, None, **draw_params)
+		# img3 = cv2.drawMatches(template, kp1, img, kp2, good, None, **draw_params)
 
 		# Draw bounding box in Red
-		img3 = cv2.polylines(img3, [np.int32(dst)], True, (0, 0, 255), 3, cv2.LINE_AA)
+		# img3 = cv2.polylines(img3, [np.int32(dst)], True, (0, 0, 255), 3, cv2.LINE_AA)
 
 		print(dst)
-		# print(dst[0][0][0])
-		# print(dst[1][0][0])
-
-		# max/min x and y for all 4 corners of bounding box
-		# x_min = min([ dst[0][0][0], dst[1][0][0]])
-		# x_max = max([ dst[2][0][0], dst[3][0][0]])
-		# y_min = min([ dst[0][0][1], dst[3][0][1]])
-		# y_max = max([ dst[1][0][1], dst[2][0][1]])
 
 		# top left and bottom right of bounding box
 		x_min = dst[0][0][0]
 		x_max = dst[2][0][0]
 		y_min = dst[0][0][1]
 		y_max = dst[2][0][1]
-
 		print("x_min: ", x_min)
 		print("x_max: ", x_max)
 		print("y_min: ", y_min)
 		print("y_max: ", y_max)
 
 
-
-		cv2.imshow("result", img3)
-		cv2.waitKey()
+		# cv2.imshow("result", img3)
+		# cv2.waitKey()
 
 
 		########### YOUR CODE ENDS HERE ###########
@@ -120,7 +108,7 @@ def cd_sift_ransac(img, template):
 		return ((x_min, y_min), (x_max, y_max))
 	else:
 
-		print("[SIFT] not enough matches; matches: ", len(good))
+		print "[SIFT] not enough matches; matches: ", len(good)
 
 		# Return bounding box of area 0 if no match found
 		return ((0,0), (0,0))
@@ -136,12 +124,6 @@ def cd_template_matching(img, template):
 	"""
 	template_canny = cv2.Canny(template, 50, 200)
 
-	# # print(img)
-	# print(template_canny)
-	# image_print(template_canny)
-	# # print(template)
-	# # image_print(template)
-
 	# Perform Canny Edge detection on test image
 	grey_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 	img_canny = cv2.Canny(grey_img, 50, 200)
@@ -151,10 +133,8 @@ def cd_template_matching(img, template):
 
 	# Keep track of best-fit match
 	best_match = None
-	# for best_match, store the scale,
 
 	# Loop over different scales of image
-	# for scale in np.linspace(2, .1, 200):
 	for scale in np.linspace(1.5, .5, 50):
 		# Resize the image
 		resized_template = imutils.resize(template_canny, width = int(template_canny.shape[1] * scale))
@@ -170,20 +150,18 @@ def cd_template_matching(img, template):
 		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 
 		# MULTIPLE MATCHES
-		# threshold = .6
-		# loc = np.where(res >= threshold)
-
+		threshold = .65
+		loc = np.where(res >= threshold)
 
 		# Remember to resize the bounding box using the highest scoring scale
 		# x1,y1 pixel will be accurate, but x2,y2 needs to be correctly scaled
 		if best_match is None or max_val > best_match[1]:
 			best_match = (min_val, max_val, min_loc, max_loc)
-			# best_locations = loc # MULTIPLE MATCHES
-			bounding_box = ( max_loc,
-							 (max_loc[0] + w, max_loc[1] + h) )
+			best_locations = loc # MULTIPLE MATCHES
+			bounding_box = (max_loc,
+							(max_loc[0] + w, max_loc[1] + h))
 			W = w
 			H = h
-
 		########### YOUR CODE ENDS HERE ###########
 
 	print(best_match)
@@ -200,13 +178,10 @@ def cd_template_matching(img, template):
 	cv2.imshow("result", img3)
 
 	# MULTIPLE MATCHES
-	# for pt in zip(*best_locations[::-1]):
-	# 	cv2.rectangle(img, pt, (pt[0] + W, pt[1] + H), (0, 0, 255), 2)
-	# cv2.imshow("result", img)
+	for pt in zip(*best_locations[::-1]):
+		cv2.rectangle(img, pt, (pt[0] + W, pt[1] + H), (0, 0, 255), 2)
+	cv2.imshow("result", img)
 
 	cv2.waitKey()
 
 	return bounding_box
-
-# if __name__ == '__main__':
-

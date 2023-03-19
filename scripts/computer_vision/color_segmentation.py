@@ -68,6 +68,7 @@ def print_image_with_bounding_box(img, bbox):
 
 # Testing bounding box visualization on 20 cone test images
 
+if __name_
 for image in range(1, 3):
     # print("~/racecar_ws/src/visual_servoing/scripts/computer_vision/test_images_cone/test" + str(image) + ".jpg")
     img = cv2.imread("./test_images_cone/test" + str(image) + ".jpg")
