@@ -41,6 +41,18 @@ class ConeDetector():
         # YOUR CODE HERE
 
         image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
+        
+        
+        # for final challenge
+        
+        # 1. crop img to be bottom 15-40%
+        cropped_img = image[int(image_height*.4):int(image_height*.85),:,:]
+        
+        # 2. apply Hough transform to img
+        dst = cv.Canny(image, 50, 200, None, 3)
+        lines = cv.HoughLines(dst, 1, np.pi / 180, 150, None, 0, 0)
+        
+        # 4. determine goal pixel point
 
         image_height = image.shape[0]
         image_crop = image[int(image_height*.5):int(image_height*.85),:,:]
