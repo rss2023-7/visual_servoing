@@ -7,6 +7,8 @@ import numpy as np
 from visual_servoing.msg import ConeLocation, ParkingError
 from ackermann_msgs.msg import AckermannDriveStamped
 
+from final_challenge.msg import StopSign
+
 
 class ParkingController():
     """
@@ -32,6 +34,10 @@ class ParkingController():
         self.error_threshold = 0 # how close or far from the goal we can be without needing to adjust
         self.relative_x = 0
         self.relative_y = 0
+
+        # NEW SHIT FOR FINAL CHALLENGE
+        self.detect_stop = True
+        rospy.Subscriber("/stop_signs", StopSign, queue_size=10)
 
 
     def relative_cone_callback(self, msg):
@@ -62,8 +68,8 @@ class ParkingController():
         if(self.relative_x < 0 or self.relative_x > 3):
             drive_cmd.drive.steering_angle = 0.0
             drive_cmd.drive.speed = 0.0
-	else:
 
+        else:
             if (self.relative_x - self.parking_distance) > self.error_threshold:
                 drive_cmd.drive.speed = 1.5
                 drive_cmd.drive.steering_angle = angle
